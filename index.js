@@ -16,7 +16,7 @@ app.listen(PORT, function() {
 })
 
 app.get('/', function (req, res) {
-    res.send('Ngrok is working! Path hit: ' + req.url);
+    res.send('Ngrok is Docker! Path hit: ' + req.url);
 });
 
 app.get('/oauth', function(req, res) {
@@ -34,6 +34,8 @@ app.get('/oauth', function(req, res) {
 const listOfCommands = ['get', 'set', 'list'];
 
 app.post('/command', function(req, res) {
+    console.log('hello');
+    
     const { text, user_name, channel_id } = req && req.body || {};
     
     if (text) {

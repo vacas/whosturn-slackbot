@@ -8,6 +8,11 @@ const clientId = process.env.SLACK_CLIENT_ID;
 const clientSecret = process.env.SLACK_CLIENT_SECRET;
 const authToken = process.env.SLACK_AUTH_TOKEN;
 
+console.log('clientId: ', clientId);
+console.log('clientSecret: ', clientSecret);
+console.log('authToken: ', authToken);
+
+
 const hello = (res, { channelId }) => {
   var data = {
       form: {

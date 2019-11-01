@@ -1,0 +1,10 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "4390:4390"
+    volumes:
+      - .:/app
+  redis:
+    image: "redis:alpine"
