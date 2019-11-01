@@ -1,10 +1,17 @@
 version: '3'
 services:
+  redis:
+    image: redis
+    container_name: cache
+    expose:
+      - 6379
   web:
     build: .
+    links:
+      - redis
     ports:
       - "4390:4390"
+    environment:
+      - REDIS_URL=redis://cache
     volumes:
       - .:/app
-  redis:
-    image: "redis:alpine"

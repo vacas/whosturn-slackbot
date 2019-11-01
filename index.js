@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const redis = require('redis'),
+      client = redis.createClient(process.env.REDIS_URL);
 const { hello, auth, getList } = require('./commands');
 
 const app = express();
@@ -11,12 +13,42 @@ app.use(bodyParser.json());
 
 const PORT=4390;
 
+client.on('connect', function() {
+    console.log('Redis client connected');
+});
+
+client.on('error', function (err) {
+    console.log('Something went wrong ' + err);
+});
+
 app.listen(PORT, function() {
     console.log("Example app listening on port " + PORT);
 })
 
 app.get('/', function (req, res) {
     res.send('Ngrok is Docker! Path hit: ' + req.url);
+});
+
+app.get('/redis', function(req, res) {
+    client.get('test', function(error, result) {
+        if (error) {
+            console.log(error);
+            throw error;
+        }
+
+        console.log(`GET result -> ${result}`);
+    })
+});
+
+app.post('/redisPost', function(req, res) {
+    const { test } = req && req.body || {};
+
+    console.log(req.body);
+    console.log(test);
+
+    if (test) {
+      client.set('test', test, redis.print);
+    }
 });
 
 app.get('/oauth', function(req, res) {
