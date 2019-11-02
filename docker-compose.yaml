@@ -1,17 +1,21 @@
 version: '3'
 services:
-  redis:
-    image: redis
-    container_name: cache
-    expose:
-      - 6379
-  web:
-    build: .
+  app:
+    build: 
+      context: .
     links:
       - redis
-    ports:
-      - "4390:4390"
     environment:
-      - REDIS_URL=redis://cache
+      - REDIS_URL=redis://redis
+    ports:
+      - 3000:3000
     volumes:
-      - .:/app
+      - .:/var/www/app
+  redis:
+    image: redis
+    container_name: redis
+    expose:
+      - 6379
+    volumes:
+      - ./.data/redis:/var/lib/redis
+    restart: always

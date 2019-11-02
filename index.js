@@ -11,7 +11,7 @@ const app = express();
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
-const PORT=4390;
+const PORT= 3000 || process.env.PORT;
 
 client.on('connect', function() {
     console.log('Redis client connected');

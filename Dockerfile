@@ -1,6 +1,6 @@
 FROM node:10
 
-WORKDIR /usr/src/app
+WORKDIR /var/www/app
 
 COPY package*.json ./
 
@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 80
 
-CMD ["nodemon", "index.js"]
+CMD ["npm", "start"]
