@@ -29,28 +29,6 @@ app.get('/', function (req, res) {
     res.send('Ngrok is Docker! Path hit: ' + req.url);
 });
 
-app.get('/redis', function(req, res) {
-    client.get('test', function(error, result) {
-        if (error) {
-            console.log(error);
-            throw error;
-        }
-
-        console.log(`GET result -> ${result}`);
-    })
-});
-
-app.post('/redisPost', function(req, res) {
-    const { test } = req && req.body || {};
-
-    console.log(req.body);
-    console.log(test);
-
-    if (test) {
-      client.set('test', test, redis.print);
-    }
-});
-
 app.get('/oauth', function(req, res) {
     if (!req.query.code) {
         res.status(500);
@@ -66,8 +44,6 @@ app.get('/oauth', function(req, res) {
 const listOfCommands = ['get', 'set', 'list'];
 
 app.post('/command', function(req, res) {
-    console.log('hello');
-    
     const { text, user_name, channel_id } = req && req.body || {};
     
     if (text) {
@@ -77,13 +53,41 @@ app.post('/command', function(req, res) {
         
         if (splitMessage.length > 1) {
             switch (command) {
-                case 'get':
+                case 'get': {
+                    if (splitMessage.length > 1) {
+                        console.log('hello');
+                        
+                        const key = splitMessage[1];
+                        console.log(key);
+                        
+                        return client.get(key, function(error, result) {
+                            if (error) {
+                                res.send(`An error ocurred: ${error}`);
+                                throw error;
+                            }
+
+                            res.send(`${key} -> ${result}`);
+                        });
+                    } else {
+                        return res.send(`Not enough arguments, bro 🤷‍♀️`)
+                    }
+                }
                 case 'hello': {
                     options.channelId = channel_id;
                     hello(res, options);
                 }
                 case 'list': {
                     getList(req, res);
+                }
+                case 'set': {
+                    if (splitMessage.length > 2) {
+                        const key = splitMessage[1];
+                        const value = splitMessage[2];
+                        client.set(key, value, redis.print);
+                        return res.send(`Got you, bro: ${key} -> ${value}`);
+                    } else {
+                        return res.send(`Not enough arguments, bro 🤷‍♀️`)
+                    }
                 }
             }
         } else if (command === 'hello') {
