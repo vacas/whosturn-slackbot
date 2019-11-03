@@ -1,3 +1,27 @@
+/* 
+    TODO:
+        - Make commands into class
+        - Make cache (redis) into class
+        - Add persistence to redis
+        - Make ngrok into its own docker image
+        - Set redis variables:
+            - random: bool
+            - currentList: Array<User>
+            - currentUser: User
+            - nextUser: User
+            - blacklist: Array<User>
+            - whitelist: Array<User>
+        - Set commands:
+            - list
+            - set
+            - get
+            - reset
+            - customize
+            - next
+            - current
+            - addUser
+*/
+
 require('dotenv').config();
 
 const express = require('express');
@@ -66,7 +90,11 @@ app.post('/command', function(req, res) {
                                 throw error;
                             }
 
-                            res.send(`${key} -> ${result}`);
+                            if (result) {
+                                return res.send(`${key} -> ${result}`);
+                            }
+
+                            return res.send(`Nothing is set for "${key}" here, bro 🤷‍♀️`)
                         });
                     } else {
                         return res.send(`Not enough arguments, bro 🤷‍♀️`)
