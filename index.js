@@ -26,9 +26,9 @@ require('dotenv').config();
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const redis = require('redis'),
-      client = redis.createClient(process.env.REDIS_URL);
-const { hello, auth, getList } = require('./commands');
+
+const Commands = require('./commands');
+const commands = new Commands();
 
 const app = express();
 
@@ -36,14 +36,6 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 const PORT= 3000 || process.env.PORT;
-
-client.on('connect', function() {
-    console.log('Redis client connected');
-});
-
-client.on('error', function (err) {
-    console.log('Something went wrong ' + err);
-});
 
 app.listen(PORT, function() {
     console.log("Example app listening on port " + PORT);
@@ -67,67 +59,43 @@ app.get('/oauth', function(req, res) {
 
 const listOfCommands = ['get', 'set', 'list'];
 
-app.post('/command', function(req, res) {
+app.post('/command', async (req, res) => {
     const { text, user_name, channel_id } = req && req.body || {};
     
     if (text) {
         const splitMessage = text.split(' ');
         const command = splitMessage[0];
         const options = {};
+        let response = `There's nothing to ${command}, ${user_name}`;
         
         if (splitMessage.length > 1) {
             switch (command) {
                 case 'get': {
-                    if (splitMessage.length > 1) {
-                        console.log('hello');
-                        
-                        const key = splitMessage[1];
-                        console.log(key);
-                        
-                        return client.get(key, function(error, result) {
-                            if (error) {
-                                res.send(`An error ocurred: ${error}`);
-                                throw error;
-                            }
-
-                            if (result) {
-                                return res.send(`${key} -> ${result}`);
-                            }
-
-                            return res.send(`Nothing is set for "${key}" here, bro 🤷‍♀️`)
-                        });
-                    } else {
-                        return res.send(`Not enough arguments, bro 🤷‍♀️`)
-                    }
+                    const response = await commands.getAsync(res, splitMessage);
+                    console.log('response: ', response);
+                    
+                    return res.send(response);
                 }
                 case 'hello': {
                     options.channelId = channel_id;
-                    hello(res, options);
+                    return commands.hello(res, options);
                 }
                 case 'list': {
-                    getList(req, res);
+                    return commands.getList(req, res);
                 }
                 case 'set': {
-                    if (splitMessage.length > 2) {
-                        const key = splitMessage[1];
-                        const value = splitMessage[2];
-                        client.set(key, value, redis.print);
-                        return res.send(`Got you, bro: ${key} -> ${value}`);
-                    } else {
-                        return res.send(`Not enough arguments, bro 🤷‍♀️`)
-                    }
+                    response = commands.set(splitMessage);
                 }
             }
         } else if (command === 'hello') {
             console.log('hello there');
             options.channelId = channel_id;
-            hello(res, { channelId: channel_id});
+            return commands.hello(res, { channelId: channel_id });
         } else if (command === 'list') {
-            getList(req, res);
+            return commands.getList(req, res);
         }
-        else {
-            res.send(`There's nothing to ${command}, ${user_name}`);
-        }
+
+        return res.send(response);
     } else {
         res.send(`You didn't say anything, @${user_name} 🤷‍♀️`);
     }
