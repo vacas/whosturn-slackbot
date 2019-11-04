@@ -2,7 +2,7 @@
   TODO: SET UP REDIS TO STORE USER LIST
 */
 
-const request = require('request');
+var rp = require('request-promise');
 const Redis = require('./cache');
 const Cache = new Redis();
 
@@ -55,62 +55,67 @@ module.exports = class Commands {
     });
   }
   
-  getList(req, res) {
-    request({
+  getList() {
+    return rp({
       url: 'https://slack.com/api/users.list',
       qs: {
         token: authToken
       },
       method: 'GET',
-    }, (err, _, body) => {
-      const { members } = JSON.parse(body);
+    }).then((res) => {
+      console.log('res:',  res);
       
-      if (err) {
-        console.log(err);
+      // console.log(`res: ${res.body}`);
+      
+      const { members } = JSON.parse(res.body);
+
+      if (!members || members.length === 0) {
+        return null;
+      }
+      
+      if (res.error) {
+        console.log(res.error);
       } else {
-        const filteredMembers = members.filter(member => member.real_name);
-        for (let i = 0; i < filteredMembers.length; i++) {
-          const member = filteredMembers[i];
-          console.log(!member.real_name);
-        }
-        const memberList = filteredMembers.map(member => member.real_name);
+        // const filteredMembers = members.filter(member => member.name);
+        // for (let i = 0; i < filteredMembers.length; i++) {
+        //   const member = filteredMembers[i];
+        //   console.log(member);
+        // }
+        const memberList = members.filter(member => member.name).map(member => member.name);
         console.log(memberList);
         
-        res.json(`Got it 👍: ${memberList.join(', ')}`);
+        return res.json(`Got it 👍: ${memberList.join(', ')}`);
       }
-    })
+    });
   }
   
-  get(res, splitMessage) {
-    if (splitMessage.length > 1) {
-      const key = splitMessage[1];
-      console.log(key);
+  // get(res, splitMessage) {
+  //   if (splitMessage.length > 1) {
+  //     const key = splitMessage[1];
+  //     console.log(key);
       
-      const response = Cache.get(key, function(error, result) {
-          if (error) {
-              res.send(`An error ocurred: ${error}`);
-              throw error;
-          }
+  //     const response = Cache.get(key, function(error, result) {
+  //         if (error) {
+  //             res.send(`An error ocurred: ${error}`);
+  //             throw error;
+  //         }
   
-          if (result) {
-              return `${key} -> ${result}`;
-          }
+  //         if (result) {
+  //             return `${key} -> ${result}`;
+  //         }
   
-          return `Nothing is set for "${key}" here, bro 🤷‍♀️`;
-      });
-      console.log(response);
+  //         return `Nothing is set for "${key}" here, bro 🤷‍♀️`;
+  //     });
+  //     console.log(response);
       
-      return res.send(response);
-    } else {
-        return res.send(`Not enough arguments, bro 🤷‍♀️`)
-    }
-  };
+  //     return res.send(response);
+  //   } else {
+  //       return res.send(`Not enough arguments, bro 🤷‍♀️`)
+  //   }
+  // };
 
-  async getAsync(splitMessage) {
-    if (splitMessage.length > 1) {
-      
-      const key = splitMessage[1];
-      
+  async getAsync(key) {
+    if (key) {
       const response = await Cache.getAsync(key);
       console.log('response (getAsync): ', response);
       
@@ -123,13 +128,27 @@ module.exports = class Commands {
         return `Not enough arguments, bro 🤷‍♀️`;
     }
   };
-  
-  set(splitMessage) {
-    if (splitMessage.length > 2) {
-      const key = splitMessage[1];
-      const value = splitMessage[2];
 
-      const error = Cache.set(key, value);
+  // async getAsync(values) {
+  //   if (values.length > 0) {
+  //     const key = values[0];
+      
+  //     const response = await Cache.getAsync(key);
+  //     console.log('response (getAsync): ', response);
+      
+  //     if (response) {
+  //       return response;
+  //     }
+
+  //     return `Nothing is set for "${key}" here, bro 🤷‍♀️`;
+  //   } else {
+  //       return `Not enough arguments, bro 🤷‍♀️`;
+  //   }
+  // };
+
+  set(key, values) {
+    if (values || values.length > 0) {
+      const error = Cache.set(key, values);
 
       if (error) {
         return `Error: ${error}`;
@@ -140,4 +159,21 @@ module.exports = class Commands {
 
     return `Not enough arguments, bro 🤷‍♀️`;
   }
+  
+  // set(values) {
+  //   if (values.length > 1) {
+  //     const key = values[0];
+  //     const value = values[1];
+
+  //     const error = Cache.set(key, value);
+
+  //     if (error) {
+  //       return `Error: ${error}`;
+  //     }
+
+  //     return `Got you, bro: ${key} -> ${value}`;
+  //   }
+
+  //   return `Not enough arguments, bro 🤷‍♀️`;
+  // }
 }

@@ -65,23 +65,35 @@ app.post('/command', async (req, res) => {
     if (text) {
         const splitMessage = text.split(' ');
         const command = splitMessage[0];
+        let values = [];
+        if (splitMessage.length > 1) {
+            values = splitMessage.slice(1, splitMessage.length);
+        }
+
+        console.log(values);
+        
         const options = {};
         let response = `There's nothing to ${command}, ${user_name}`;
         
-        if (splitMessage.length > 1) {
+        if (values.length > 0) {
             switch (command) {
                 case 'get': {
-                    response = await commands.getAsync(splitMessage);
+                    response = await commands.getAsync(values);
+                    break;
                 }
                 case 'hello': {
                     options.channelId = channel_id;
                     return commands.hello(res, options);
                 }
                 case 'list': {
-                    return commands.getList(req, res);
+                    response = commands.getList(res);
+                    console.log(`list response: ${response}`);
+                    
+                    break;
                 }
                 case 'set': {
-                    response = commands.set(splitMessage);
+                    response = commands.set(values);
+                    break;
                 }
             }
         } else if (command === 'hello') {
