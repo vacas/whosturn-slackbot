@@ -15,6 +15,11 @@ console.log('clientSecret: ', clientSecret);
 console.log('authToken: ', authToken);
 
 module.exports = class Commands {
+  /*
+    Create a user check and extract if they don't
+    Add instructions
+  */
+
   hello(res, { channelId }){
     var data = {
         form: {
@@ -78,8 +83,6 @@ module.exports = class Commands {
   
   get(res, splitMessage) {
     if (splitMessage.length > 1) {
-      console.log('hello');
-      
       const key = splitMessage[1];
       console.log(key);
       
@@ -90,11 +93,9 @@ module.exports = class Commands {
           }
   
           if (result) {
-              // return res.send(`${key} -> ${result}`);
               return `${key} -> ${result}`;
           }
   
-          // return res.send(`Nothing is set for "${key}" here, bro 🤷‍♀️`);
           return `Nothing is set for "${key}" here, bro 🤷‍♀️`;
       });
       console.log(response);
@@ -105,7 +106,7 @@ module.exports = class Commands {
     }
   };
 
-  async getAsync(res, splitMessage) {
+  async getAsync(splitMessage) {
     if (splitMessage.length > 1) {
       
       const key = splitMessage[1];
@@ -117,7 +118,6 @@ module.exports = class Commands {
         return response;
       }
 
-      // return res.send('Nothing'); 
       return `Nothing is set for "${key}" here, bro 🤷‍♀️`;
     } else {
         return `Not enough arguments, bro 🤷‍♀️`;

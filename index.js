@@ -71,10 +71,7 @@ app.post('/command', async (req, res) => {
         if (splitMessage.length > 1) {
             switch (command) {
                 case 'get': {
-                    const response = await commands.getAsync(res, splitMessage);
-                    console.log('response: ', response);
-                    
-                    return res.send(response);
+                    response = await commands.getAsync(splitMessage);
                 }
                 case 'hello': {
                     options.channelId = channel_id;
@@ -88,7 +85,6 @@ app.post('/command', async (req, res) => {
                 }
             }
         } else if (command === 'hello') {
-            console.log('hello there');
             options.channelId = channel_id;
             return commands.hello(res, { channelId: channel_id });
         } else if (command === 'list') {
